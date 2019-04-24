@@ -444,7 +444,8 @@ class DomsNetCDFValueWriter:
     def addData(self, value):
         self.lat.append(value.get("y", None))
         self.lon.append(value.get("x", None))
-        self.time.append(time.mktime(value.get("time").timetuple()))
+        t = (value.get("time") - datetime(1970, 1, 1).replace(tzinfo=UTC)).total_seconds()
+        self.time.append(t)
         self.sea_water_salinity.append(value.get("sea_water_salinity", None))
         self.wind_speed.append(value.get("wind_speed", None))
         self.wind_u.append(value.get("wind_u", None))
