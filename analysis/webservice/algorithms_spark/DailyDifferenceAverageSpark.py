@@ -23,7 +23,8 @@ from nexustiles.nexustiles import NexusTileService
 from shapely import wkt
 from shapely.geometry import Polygon
 
-from webservice.NexusHandler import nexus_handler, SparkHandler
+from webservice.NexusHandler import nexus_handler
+from webservice.algorithms_spark.NexusCalcSparkHandler import NexusCalcSparkHandler
 from webservice.webmodel import NexusResults, NexusProcessingException
 
 SENTINEL = 'STOP'
@@ -37,7 +38,7 @@ def iso_time_to_epoch(str_time):
 
 
 @nexus_handler
-class DailyDifferenceAverageSparkImpl(SparkHandler):
+class DailyDifferenceAverageNexusImplSpark(NexusCalcSparkHandler):
     name = "Daily Difference Average Spark"
     path = "/dailydifferenceaverage_spark"
     description = "Subtracts data in box in Dataset 1 from Dataset 2, then averages the difference per day."
@@ -70,8 +71,8 @@ class DailyDifferenceAverageSparkImpl(SparkHandler):
     }
     singleton = True
 
-    def __init__(self):
-        SparkHandler.__init__(self, skipCassandra=True)
+    def __init__(self, **kwargs):
+        NexusCalcSparkHandler.__init__(self, skipCassandra=True, **kwargs)
         self.log = logging.getLogger(__name__)
 
     def parse_arguments(self, request):
@@ -132,7 +133,7 @@ class DailyDifferenceAverageSparkImpl(SparkHandler):
         self.log.debug("Querying for tiles in search domain")
         # Get tile ids in box
         tile_ids = [tile.tile_id for tile in
-                    self._tile_service.find_tiles_in_polygon(bounding_polygon, dataset,
+                    self._get_tile_service().find_tiles_in_polygon(bounding_polygon, dataset,
                                                              start_seconds_from_epoch, end_seconds_from_epoch,
                                                              fetch_data=False, fl='id',
                                                              sort=['tile_min_time_dt asc', 'tile_min_lon asc',

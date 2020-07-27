@@ -27,14 +27,15 @@ from nexustiles.nexustiles import NexusTileService
 from scipy import stats
 
 from webservice import Filtering as filt
-from webservice.NexusHandler import NexusHandler, nexus_handler, DEFAULT_PARAMETERS_SPEC
+from webservice.NexusHandler import nexus_handler, DEFAULT_PARAMETERS_SPEC
+from webservice.algorithms.NexusCalcHandler import NexusCalcHandler
 from webservice.webmodel import NexusResults, NexusProcessingException, NoDataException
 
 SENTINEL = 'STOP'
 
 
 @nexus_handler
-class TimeSeriesHandlerImpl(NexusHandler):
+class TimeSeriesCalcHandlerImpl(NexusCalcHandler):
     name = "Time Series Solr"
     path = "/statsSolr"
     description = "Computes a time series plot between one or more datasets given an arbitrary geographical area and time range"
@@ -42,7 +43,7 @@ class TimeSeriesHandlerImpl(NexusHandler):
     singleton = True
 
     def __init__(self):
-        NexusHandler.__init__(self, skipCassandra=True)
+        NexusCalcHandler.__init__(self, skipCassandra=True)
         self.log = logging.getLogger(__name__)
 
     def calc(self, computeOptions, **args):
@@ -98,7 +99,7 @@ class TimeSeriesHandlerImpl(NexusHandler):
     def getTimeSeriesStatsForBoxSingleDataSet(self, min_lat, max_lat, min_lon, max_lon, ds, start_time=0, end_time=-1,
                                               applySeasonalFilter=True, applyLowPass=True):
 
-        daysinrange = self._tile_service.find_days_in_range_asc(min_lat, max_lat, min_lon, max_lon, ds, start_time,
+        daysinrange = self._get_tile_service().find_days_in_range_asc(min_lat, max_lat, min_lon, max_lon, ds, start_time,
                                                                 end_time)
 
         if len(daysinrange) == 0:

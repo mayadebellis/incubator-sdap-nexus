@@ -36,12 +36,17 @@ class SolrProxy(object):
     def __init__(self, config):
         self.solrUrl = config.get("solr", "host")
         self.solrCore = config.get("solr", "core")
+        solr_kargs = {}
+        if config.has_option("solr", "time_out"):
+            solr_kargs["timeout"] = config.get("solr", "time_out")
         self.logger = logging.getLogger('nexus')
 
         with SOLR_CON_LOCK:
             solrcon = getattr(thread_local, 'solrcon', None)
             if solrcon is None:
-                solrcon = pysolr.Solr('http://%s/solr/%s' % (self.solrUrl, self.solrCore))
+                solr_url = 'http://%s/solr/%s' % (self.solrUrl, self.solrCore)
+                self.logger.info("connect to solr, url {} with option(s) = {}".format(solr_url, solr_kargs))
+                solrcon = pysolr.Solr(solr_url, **solr_kargs)
                 thread_local.solrcon = solrcon
 
             self.solrcon = solrcon
@@ -281,7 +286,7 @@ class SolrProxy(object):
             ]
         }
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             search_start_s = datetime.utcfromtimestamp(start_time).strftime(SOLR_FORMAT)
             search_end_s = datetime.utcfromtimestamp(end_time).strftime(SOLR_FORMAT)
 
@@ -313,7 +318,7 @@ class SolrProxy(object):
             ]
         }
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             search_start_s = datetime.utcfromtimestamp(start_time).strftime(SOLR_FORMAT)
             search_end_s = datetime.utcfromtimestamp(end_time).strftime(SOLR_FORMAT)
 
@@ -345,7 +350,7 @@ class SolrProxy(object):
             ]
         }
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             search_start_s = datetime.utcfromtimestamp(start_time).strftime(SOLR_FORMAT)
             search_end_s = datetime.utcfromtimestamp(end_time).strftime(SOLR_FORMAT)
 
@@ -382,7 +387,7 @@ class SolrProxy(object):
             'facet.mincount': 1
         }
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             search_start_s = datetime.utcfromtimestamp(start_time).strftime(SOLR_FORMAT)
             search_end_s = datetime.utcfromtimestamp(end_time).strftime(SOLR_FORMAT)
 
@@ -419,7 +424,7 @@ class SolrProxy(object):
             ]
         }
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             search_start_s = datetime.utcfromtimestamp(start_time).strftime(SOLR_FORMAT)
             search_end_s = datetime.utcfromtimestamp(end_time).strftime(SOLR_FORMAT)
 
@@ -551,7 +556,7 @@ class SolrProxy(object):
             'fq': metadata
         }
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             additionalparams['fq'].append(self.get_formatted_time_clause(start_time, end_time))
 
         self._merge_kwargs(additionalparams, **kwargs)
@@ -598,7 +603,7 @@ class SolrProxy(object):
             min_lon, min_lat, max_lon, max_lat = bounding_polygon.bounds
             additionalparams['fq'].append("geo:[%s,%s TO %s,%s]" % (min_lat, min_lon, max_lat, max_lon))
 
-        if 0 < start_time <= end_time:
+        if 0 <= start_time <= end_time:
             additionalparams['fq'].append(self.get_formatted_time_clause(start_time, end_time))
 
         if metadata:

@@ -23,7 +23,8 @@ import shapely.geometry
 from nexustiles.nexustiles import NexusTileService
 from pytz import timezone
 
-from webservice.NexusHandler import nexus_handler, SparkHandler
+from webservice.NexusHandler import nexus_handler
+from webservice.algorithms_spark.NexusCalcSparkHandler import NexusCalcSparkHandler
 from webservice.webmodel import NexusResults, NexusProcessingException, NoDataException
 
 EPOCH = timezone('UTC').localize(datetime(1970, 1, 1))
@@ -31,7 +32,7 @@ ISO_8601 = '%Y-%m-%dT%H:%M:%S%z'
 
 
 @nexus_handler
-class VarianceSparkHandlerImpl(SparkHandler):
+class VarianceNexusSparkHandlerImpl(NexusCalcSparkHandler):
     name = "Temporal Variance Spark"
     path = "/varianceSpark"
     description = "Computes a map of the temporal variance"
@@ -67,9 +68,6 @@ class VarianceSparkHandlerImpl(SparkHandler):
     }
     singleton = True
 
-    def __init__(self):
-        SparkHandler.__init__(self)
-        self.log = logging.getLogger(__name__)
 
     def parse_arguments(self, request):
         # Parse input arguments
@@ -161,7 +159,7 @@ class VarianceSparkHandlerImpl(SparkHandler):
         self.log.debug('Found {0} tiles'.format(len(nexus_tiles)))
         print('Found {} tiles'.format(len(nexus_tiles)))
 
-        daysinrange = self._tile_service.find_days_in_range_asc(bbox.bounds[1],
+        daysinrange = self._get_tile_service().find_days_in_range_asc(bbox.bounds[1],
                                                                 bbox.bounds[3],
                                                                 bbox.bounds[0],
                                                                 bbox.bounds[2],
